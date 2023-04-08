@@ -39,10 +39,27 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  testSerial();
+  // moveSteppers();
+}
+
+void testSerial() {
+  if (Serial.available()) {
+    Serial.println(String("received") + Serial.readString());
+  }
+
+
+  Serial.println("lol");
+  Serial.println(22.1249);
+}
+
+void moveSteppers() {
+    stepper_bottom.setRPM(20);
   Serial.println(Serial.available());
   stepper_bottom.startMove(final_pos);
   stepper_top.startMove(final_pos);
+
+
 
   unsigned wait_time_bottom = 1;
   unsigned wait_time_top = 1;
@@ -55,7 +72,7 @@ void loop() {
     if (wait_time_top > 0) {
       wait_time_top = stepper_top.nextAction();
     }
-    
+
     // int remaining = stepper_bottom.getStepsRemaining();
   }
 }
