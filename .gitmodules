@@ -1,6 +1,0 @@
-[submodule "wii/wiiuse"]
-	path = wii/wiiuse
-	url = https://github.com/wiiuse/wiiuse
-[submodule "wii/wiiuse2"]
-	path = wii/wiiuse2
-	url = https://github.com/wiiuse/wiiuse
