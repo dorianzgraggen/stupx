@@ -1,0 +1,8 @@
+[ ] backend: audio analysiere
+[ ] liste vo target points an arduino sende 
+[ ] button zum zeichnig sende
+[ ] button zum zeichnig cleare
+[ ] ux: button instructions
+[ ] ui: mikrofon-screen
+[ ] ui: switch zwüsche zeichnigsmodus und mikrofon 
+[ ] epischs doku/demovideo (am beste frischi reactions)
