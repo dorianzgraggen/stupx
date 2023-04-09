@@ -18,18 +18,20 @@ scene.add(createGrid());
 const cursor = createCursor();
 scene.add(cursor);
 
-const curve = createCurve();
-const { curve_mesh } = addCurve(curve);
+const line = createLine();
+scene.add(line);
 
 let renderer: THREE.WebGLRenderer;
 
 let follow_mouse = true;
 let mouse_pos = new THREE.Vector2();
 
+let points = new Array<THREE.Vector3>();
+let last_point = new THREE.Vector3();
+
 document.addEventListener('mousemove', (e) => {
   mouse_pos.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse_pos.y = -((e.clientY / window.innerHeight) * 2 - 1);
-  console.log(mouse_pos);
 });
 
 export function init(canvas: HTMLCanvasElement) {
@@ -44,8 +46,6 @@ function animate(time: number) {
   cube.rotation.x += 0.01;
   cube.rotation.y += 0.01;
 
-  updateSpline(time);
-
   if (follow_mouse) {
     // cursor.position.x =
     cursor.position.x = (mouse_pos.x * camera_size) / 2;
@@ -54,7 +54,20 @@ function animate(time: number) {
     document.body.style.cursor = 'none';
   }
 
+  handlePointCreation();
+  updateLine(time);
+
   renderer.render(scene, camera);
+}
+
+function handlePointCreation() {
+  const distance_squared = cursor.position.distanceToSquared(last_point);
+  // console.log({ distance_squared });
+  if (distance_squared > 0.2 ** 2) {
+    console.log('new points');
+    last_point.copy(cursor.position);
+    points.push(last_point.clone());
+  }
 }
 
 function createCamera() {
@@ -83,12 +96,6 @@ function createGrid() {
   return gridHelper;
 }
 
-function createCurve() {
-  let positions = getCurvePoints();
-  let curve = new THREE.CatmullRomCurve3(positions);
-  return curve;
-}
-
 function getCurvePoints() {
   let positions = new Array<THREE.Vector3>();
   let count = num_of_ponts;
@@ -102,23 +109,16 @@ function getCurvePoints() {
 }
 
 // probably rather inefficient but idk
-function updateSpline(time) {
-  curve.points.forEach((p, i) => {
-    p.y = Math.sin((i / num_of_ponts) * 20) * 4 * Math.sin(time * 0.001);
-  });
-  curve_mesh.geometry.setFromPoints(curve.points);
+function updateLine(time) {
+  line.geometry.setFromPoints(points);
 }
 
-function addCurve(curve: THREE.CatmullRomCurve3) {
-  const points = curve.getPoints(num_of_ponts);
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+function createLine() {
+  const geometry = new THREE.BufferGeometry();
   const material = new THREE.LineBasicMaterial({
     color: 0xff0000,
   });
-  // Create the final object to add to the scene
-  const curveObject = new THREE.Line(geometry, material);
-  scene.add(curveObject);
-  return { curve_mesh: curveObject };
+  return new THREE.Line(geometry, material);
 }
 
 function createCursor() {
@@ -129,7 +129,6 @@ function createCursor() {
 
   const size = 1.4;
   const geometry = new THREE.PlaneGeometry(size, size);
-  // const geometry = new THREE.BoxGeometry(1, 1, 1);
 
   const map = new THREE.TextureLoader().load(pointer_url);
   const material = new THREE.MeshBasicMaterial({ map, transparent: true });
