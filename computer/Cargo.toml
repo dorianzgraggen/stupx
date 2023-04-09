@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 serialport = "4.2.0"
-hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
+axum = "0.6.12"
+serde = { version = "1.0.159", features = ["derive"]}
+tower-http = { version = "0.4.0", features = ["cors"]}

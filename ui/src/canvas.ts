@@ -30,11 +30,33 @@ let mouse_pos_smooth = new THREE.Vector2();
 let points = new Array<THREE.Vector3>();
 let last_point = new THREE.Vector3();
 
-setupWebsocket();
-
 document.addEventListener('mousemove', (e) => {
   mouse_pos.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse_pos.y = -((e.clientY / window.innerHeight) * 2 - 1);
+});
+
+document.addEventListener('keydown', async (e) => {
+  switch (e.key) {
+    case 'q':
+      const body = JSON.stringify({
+        points: points.map((p) => {
+          return { x: p.x, y: p.y };
+        }),
+      });
+      const res = await fetch('http://localhost:3000/draw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body,
+      });
+
+      console.log(res);
+      break;
+
+    default:
+      break;
+  }
 });
 
 export function init(canvas: HTMLCanvasElement) {
@@ -146,28 +168,4 @@ function createCursor() {
   root.add(pointer);
 
   return root;
-}
-
-function setupWebsocket() {
-  // Create WebSocket connection.
-  const socket = new WebSocket('ws://localhost:8080');
-
-  // Connection opened
-  socket.addEventListener('open', (event) => {
-    console.log('websocket connected');
-    // socket.send('Hello Server!');
-  });
-
-  // Listen for messages
-  socket.addEventListener('message', (event) => {
-    // console.log('[WIIUSE]', event.data);
-    const s = event.data as String;
-    if (s.includes('IR cursor')) {
-      const x = Number(s.split('(')[1].split(',')[0]);
-      const y = Number(s.split(', ')[1].split(')')[0]);
-      console.log({ x, y });
-      mouse_pos.x = x / 500 - 0.5;
-      mouse_pos.y = -(y / 500 - 0.5);
-    }
-  });
 }
