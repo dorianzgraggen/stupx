@@ -1,7 +1,9 @@
 import * as THREE from 'three';
+import pointer_url from './assets/pointer.png?url';
 
 const scene = new THREE.Scene();
 
+const camera_size = 30;
 const camera = createCamera();
 
 let num_of_ponts = 1300;
@@ -9,14 +11,26 @@ let num_of_ponts = 1300;
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+// scene.add(cube);
 
 scene.add(createGrid());
+
+const cursor = createCursor();
+scene.add(cursor);
 
 const curve = createCurve();
 const { curve_mesh } = addCurve(curve);
 
 let renderer: THREE.WebGLRenderer;
+
+let follow_mouse = true;
+let mouse_pos = new THREE.Vector2();
+
+document.addEventListener('mousemove', (e) => {
+  mouse_pos.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse_pos.y = -((e.clientY / window.innerHeight) * 2 - 1);
+  console.log(mouse_pos);
+});
 
 export function init(canvas: HTMLCanvasElement) {
   renderer = new THREE.WebGLRenderer({ canvas });
@@ -32,13 +46,20 @@ function animate(time: number) {
 
   updateSpline(time);
 
+  if (follow_mouse) {
+    // cursor.position.x =
+    cursor.position.x = (mouse_pos.x * camera_size) / 2;
+    let ratio = window.innerHeight / window.innerWidth;
+    cursor.position.y = 0.5 * (mouse_pos.y * camera_size) * ratio;
+    document.body.style.cursor = 'none';
+  }
+
   renderer.render(scene, camera);
 }
 
 function createCamera() {
-  const size = 30;
-  const width = size;
-  const height = size / (window.innerWidth / window.innerHeight);
+  const width = camera_size;
+  const height = camera_size / (window.innerWidth / window.innerHeight);
   const camera = new THREE.OrthographicCamera(
     width / -2,
     width / 2,
@@ -82,7 +103,6 @@ function getCurvePoints() {
 
 // probably rather inefficient but idk
 function updateSpline(time) {
-  console.log(time);
   curve.points.forEach((p, i) => {
     p.y = Math.sin((i / num_of_ponts) * 20) * 4 * Math.sin(time * 0.001);
   });
@@ -99,4 +119,25 @@ function addCurve(curve: THREE.CatmullRomCurve3) {
   const curveObject = new THREE.Line(geometry, material);
   scene.add(curveObject);
   return { curve_mesh: curveObject };
+}
+
+function createCursor() {
+  const root = new THREE.Group();
+
+  const helper = new THREE.AxesHelper();
+  root.add(helper);
+
+  const size = 1.4;
+  const geometry = new THREE.PlaneGeometry(size, size);
+  // const geometry = new THREE.BoxGeometry(1, 1, 1);
+
+  const map = new THREE.TextureLoader().load(pointer_url);
+  const material = new THREE.MeshBasicMaterial({ map, transparent: true });
+
+  const pointer = new THREE.Mesh(geometry, material);
+  pointer.position.x += 0.23;
+  pointer.position.y -= 0.56;
+  root.add(pointer);
+
+  return root;
 }
