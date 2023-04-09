@@ -38,7 +38,7 @@ document.addEventListener('mousemove', (e) => {
 });
 
 export function init(canvas: HTMLCanvasElement) {
-  renderer = new THREE.WebGLRenderer({ canvas });
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   animate(0);
 }
