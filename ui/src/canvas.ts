@@ -25,9 +25,12 @@ let renderer: THREE.WebGLRenderer;
 
 let follow_mouse = true;
 let mouse_pos = new THREE.Vector2();
+let mouse_pos_smooth = new THREE.Vector2();
 
 let points = new Array<THREE.Vector3>();
 let last_point = new THREE.Vector3();
+
+setupWebsocket();
 
 document.addEventListener('mousemove', (e) => {
   mouse_pos.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -40,17 +43,22 @@ export function init(canvas: HTMLCanvasElement) {
   animate(0);
 }
 
+let previous_time = 0;
 function animate(time: number) {
+  let delta = time - previous_time;
+  previous_time = time;
   requestAnimationFrame(animate);
 
   cube.rotation.x += 0.01;
   cube.rotation.y += 0.01;
 
+  mouse_pos_smooth.lerp(mouse_pos, delta * 0.012);
+
   if (follow_mouse) {
     // cursor.position.x =
-    cursor.position.x = (mouse_pos.x * camera_size) / 2;
+    cursor.position.x = (mouse_pos_smooth.x * camera_size) / 2;
     let ratio = window.innerHeight / window.innerWidth;
-    cursor.position.y = 0.5 * (mouse_pos.y * camera_size) * ratio;
+    cursor.position.y = 0.5 * (mouse_pos_smooth.y * camera_size) * ratio;
     document.body.style.cursor = 'none';
   }
 
@@ -64,7 +72,6 @@ function handlePointCreation() {
   const distance_squared = cursor.position.distanceToSquared(last_point);
   // console.log({ distance_squared });
   if (distance_squared > 0.2 ** 2) {
-    console.log('new points');
     last_point.copy(cursor.position);
     points.push(last_point.clone());
   }
@@ -139,4 +146,28 @@ function createCursor() {
   root.add(pointer);
 
   return root;
+}
+
+function setupWebsocket() {
+  // Create WebSocket connection.
+  const socket = new WebSocket('ws://localhost:8080');
+
+  // Connection opened
+  socket.addEventListener('open', (event) => {
+    console.log('websocket connected');
+    // socket.send('Hello Server!');
+  });
+
+  // Listen for messages
+  socket.addEventListener('message', (event) => {
+    // console.log('[WIIUSE]', event.data);
+    const s = event.data as String;
+    if (s.includes('IR cursor')) {
+      const x = Number(s.split('(')[1].split(',')[0]);
+      const y = Number(s.split(', ')[1].split(')')[0]);
+      console.log({ x, y });
+      mouse_pos.x = x / 500 - 0.5;
+      mouse_pos.y = -(y / 500 - 0.5);
+    }
+  });
 }
