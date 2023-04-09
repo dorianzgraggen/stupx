@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 serialport = "4.2.0"
+hyper = { version = "0.14", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
