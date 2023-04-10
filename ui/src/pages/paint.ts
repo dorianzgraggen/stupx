@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import pointer_url from './assets/pointer.png?url';
+import pointer_url from '../assets/pointer.png?url';
 
 const scene = new THREE.Scene();
 
