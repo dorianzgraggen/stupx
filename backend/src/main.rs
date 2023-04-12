@@ -58,6 +58,10 @@ struct PointList {
 }
 
 fn send_painting_commands(list: PointList) {
+    let mut max = 0.0;
+
+    let measured_max_length = 18.0;
+
     let ports = serialport::available_ports().expect("No ports found!");
     for p in ports {
         println!("{}", p.port_name);
@@ -70,12 +74,25 @@ fn send_painting_commands(list: PointList) {
 
     std::thread::sleep(Duration::from_millis(4000));
 
-    let output = "This is a test. This is only a test.".as_bytes();
+    let output = "h".as_bytes();
+    println!("{:#?}", output);
     let _amount = port.write(output).expect("Write failed!");
 
+    // for point in list.points {
+    //     let length = point.length();
+    //     let remapped_length = (length * (256.0 / 18.0)) as u8;
+    //     println!("Sending {}, originally {}", remapped_length, length);
+    //     let _amount = port.write(&[remapped_length]).expect("Write failed!");
+
+    //     std::thread::sleep(Duration::from_millis(2000));
+    // }
+
+    // return;
+
     let mut waiting = false;
+    let mut serial_buf: Vec<u8> = vec![0; 1];
+
     loop {
-        let mut serial_buf: Vec<u8> = vec![0; 1];
         let num = port.bytes_to_read().unwrap();
         if num > 0 {
             waiting = false;
@@ -86,19 +103,25 @@ fn send_painting_commands(list: PointList) {
             let v = &serial_buf[0];
             match v {
                 65u8 => {
+                    // A
                     println!("Still moving");
                 }
                 66u8 => {
+                    // B
                     println!("Ready for move");
                 }
+                67u8 => {
+                    // C
+                    println!("C");
+                }
                 _ => {
-                    println!("no matching command for {}", v);
+                    println!("-- no matching command for {}", v);
                 }
             }
             // println!("{:#?}", &serial_buf[0]);
         } else if !waiting {
             waiting = true;
-            println!("now waiting");
+            println!("-- now waiting");
         }
         // println!(
         //     "{:#?}",
