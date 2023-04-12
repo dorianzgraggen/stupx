@@ -27,7 +27,7 @@ unsigned char* MOVE_PROCESSED = "A";
 unsigned char STILL_MOVING = "B";
 unsigned char HAHA = "D";
 const byte a = 2;
-uint8_t NOOO = 99;  
+uint8_t NOOO = 99;
 
 int max_pos = MOTOR_STEPS * MICROSTEPS * 1;  // motor steps to make the platform rotate one time
 
@@ -35,6 +35,8 @@ String inString = "";
 String command = "22";
 
 int pos_top = 0;
+
+bool waiting_for_top_pos = false;
 
 void setup() {
   // put your setup code here, to run once:
@@ -61,10 +63,12 @@ void loop() {
   // Serial.println(command);
   // Serial.println(command.toInt());
 
-  
+
   // Serial.println((char)104);
 
   processCommands();
+  // testMoveSteppers();
+  // delay(1500);
 
   // aaa();
   // moveSteppers();
@@ -75,11 +79,22 @@ void processCommands() {
   while (Serial.available() > 0) {
     Serial.println("A");
     int inInt = Serial.read();
-    char inChar = (char) inInt;
-    
-    if (inChar == 104) { // 104 => h
-      Serial.println("B");
-      moveSteppers(max_pos);
+    // char inChar = (char) inInt;
+
+    if (waiting_for_top_pos) {
+      stepper_bottom.enable();
+      stepper_top.enable();
+
+      moveSteppers(inInt);
+      stepper_bottom.disable();
+      stepper_top.disable();
+      Serial.print("C");  // signal that moving is done
+      waiting_for_top_pos = false;
+    }
+
+    if (inInt == 104) {  // 104 => h
+      Serial.print("B");
+      waiting_for_top_pos = true;
     }
 
     // if (inInt == 104) {
@@ -99,19 +114,20 @@ void testSerial() {
 }
 
 void moveSteppers(int top_desired) {
-  Serial.println("C");
+  // Serial.println("starting");
+  // Serial.println("C");
   // stepper_bottom.setRPM(20);
   // stepper_top.setRPM(200);
-  int to_move_top = top_desired - pos_top;
+  float multiplier = ((float)top_desired) / 256.0;
+  int remapped = max_pos * multiplier;
+  int to_move_top = remapped - pos_top;
 
-  pos_top = top_desired;
+  pos_top = remapped;
+  // Serial.println(remapped);
 
-  stepper_bottom.enable();
-  stepper_top.enable();
 
-  Serial.println(Serial.available());
-  stepper_bottom.startMove(max_pos);
-  stepper_top.startMove(-max_pos);
+  stepper_bottom.startMove(0);
+  stepper_top.startMove(-to_move_top);
 
 
   unsigned wait_time_bottom = 1;
@@ -129,9 +145,15 @@ void moveSteppers(int top_desired) {
     // int remaining = stepper_bottom.getStepsRemaining();
   }
 
-  stepper_bottom.disable();
-  stepper_top.disable();
-  delay(500);
+
+  // delay(100);
+}
+
+void testMoveSteppers() {
+  for (int i = 0; i < 256; i++) {
+    moveSteppers(i);
+    delay(10);
+  }
 }
 
 void aaa() {
@@ -145,6 +167,6 @@ void aaa() {
     int remaining = stepper_bottom.getStepsRemaining();
     int new_pos = 0;
   }
-  delay(500);
+  // delay(0);
   stepper_bottom.disable();
 }

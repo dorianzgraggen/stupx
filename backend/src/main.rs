@@ -74,80 +74,54 @@ fn send_painting_commands(list: PointList) {
 
     std::thread::sleep(Duration::from_millis(4000));
 
-    let output = "h".as_bytes();
-    println!("{:#?}", output);
-    let _amount = port.write(output).expect("Write failed!");
-
-    // for point in list.points {
-    //     let length = point.length();
-    //     let remapped_length = (length * (256.0 / 18.0)) as u8;
-    //     println!("Sending {}, originally {}", remapped_length, length);
-    //     let _amount = port.write(&[remapped_length]).expect("Write failed!");
-
-    //     std::thread::sleep(Duration::from_millis(2000));
-    // }
-
-    // return;
-
-    let mut waiting = false;
     let mut serial_buf: Vec<u8> = vec![0; 1];
 
-    loop {
-        let num = port.bytes_to_read().unwrap();
-        if num > 0 {
-            waiting = false;
-            port.read_exact(serial_buf.as_mut_slice())
-                .expect("Found no data!");
-            // println!("{:#?}", &serial_buf[..]);
+    for (i, point) in list.points.iter().enumerate() {
+        // sends signal that length is arriving
+        let output = "h".as_bytes();
+        let _amount = port.write(output).expect("Write failed!");
 
-            let v = &serial_buf[0];
-            match v {
-                65u8 => {
-                    // A
-                    println!("Still moving");
+        let length = point.length();
+        let remapped_length = (length * (256.0 / 18.0)) as u8;
+        println!(
+            "Sending {}, originally {} ({}/{})",
+            remapped_length,
+            length,
+            i,
+            list.points.len()
+        );
+        let _amount = port.write(&[remapped_length]).expect("Write failed!");
+
+        let mut waiting = true;
+        while waiting {
+            let num = port.bytes_to_read().unwrap();
+            if num > 0 {
+                port.read_exact(serial_buf.as_mut_slice())
+                    .expect("Found no data!");
+
+                let byte = &serial_buf[0];
+                match &serial_buf[0] {
+                    65u8 => {
+                        // A
+                        println!("Still moving");
+                    }
+                    66u8 => {
+                        // B
+                        println!("Ready for move");
+                    }
+                    67u8 => {
+                        // C
+                        println!("C: finished moving");
+                        waiting = false;
+                    }
+                    _ => {
+                        println!("-- no matching command for {}", byte);
+                    }
                 }
-                66u8 => {
-                    // B
-                    println!("Ready for move");
-                }
-                67u8 => {
-                    // C
-                    println!("C");
-                }
-                _ => {
-                    println!("-- no matching command for {}", v);
-                }
+                // println!("{:#?}", &serial_buf[0]);
             }
-            // println!("{:#?}", &serial_buf[0]);
-        } else if !waiting {
-            waiting = true;
-            println!("-- now waiting");
         }
-        // println!(
-        //     "{:#?}",
-        //     &serial_buf[..].iter().for_each(|item, iter| { char::from })
-        // );
-
-        // match std::str::from_utf8(&serial_buf[..bytes]) {
-        //     Ok(s) => println!("[arduino] {}", s),
-        //     Err(e) => {
-        //         println!("Error: {}", e);
-        //         println!("Data: {:#?}", serial_buf);
-        //         panic!("aaaaah");
-        //     }
-        // }
-        // std::thread::sleep(Duration::from_millis(100))
     }
-
-    // let mut reader = BufReader::new(port);
-    // let mut my_str = String::new();
-
-    // loop {
-
-    //     reader.read_line(&mut my_str);
-
-    //     println!("{}", my_str);
-    // }
 }
 
 fn process_test() {
