@@ -5,6 +5,7 @@ use axum::{
 };
 use serde::Deserialize;
 use std::{
+    default,
     io::{BufRead, BufReader},
     process::{Command, Stdio},
     time::Duration,
@@ -72,19 +73,47 @@ fn send_painting_commands(list: PointList) {
     let output = "This is a test. This is only a test.".as_bytes();
     let _amount = port.write(output).expect("Write failed!");
 
+    let mut waiting = false;
     loop {
-        let mut serial_buf: Vec<u8> = vec![0; 32];
-        let bytes = port
-            .read(serial_buf.as_mut_slice())
-            .expect("Found no data!");
+        let mut serial_buf: Vec<u8> = vec![0; 1];
+        let num = port.bytes_to_read().unwrap();
+        if num > 0 {
+            waiting = false;
+            port.read_exact(serial_buf.as_mut_slice())
+                .expect("Found no data!");
+            // println!("{:#?}", &serial_buf[..]);
 
-        match std::str::from_utf8(&serial_buf[..bytes]) {
-            Ok(s) => println!("[arduino] {}", s),
-            Err(e) => {
-                println!("Error: {}", e);
-                println!("Data: {:#?}", serial_buf);
+            let v = &serial_buf[0];
+            match v {
+                65u8 => {
+                    println!("Still moving");
+                }
+                66u8 => {
+                    println!("Ready for move");
+                }
+                _ => {
+                    println!("no matching command for {}", v);
+                }
             }
+            // println!("{:#?}", &serial_buf[0]);
+        } else if !waiting {
+            waiting = true;
+            println!("now waiting");
         }
+        // println!(
+        //     "{:#?}",
+        //     &serial_buf[..].iter().for_each(|item, iter| { char::from })
+        // );
+
+        // match std::str::from_utf8(&serial_buf[..bytes]) {
+        //     Ok(s) => println!("[arduino] {}", s),
+        //     Err(e) => {
+        //         println!("Error: {}", e);
+        //         println!("Data: {:#?}", serial_buf);
+        //         panic!("aaaaah");
+        //     }
+        // }
+        // std::thread::sleep(Duration::from_millis(100))
     }
 
     // let mut reader = BufReader::new(port);

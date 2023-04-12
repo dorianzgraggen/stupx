@@ -22,6 +22,12 @@
 
 BasicStepperDriver stepper_bottom(MOTOR_STEPS, DIR_X, STEP_X, SLEEP);
 BasicStepperDriver stepper_top(MOTOR_STEPS, DIR_Y, STEP_Y, SLEEP);
+BasicStepperDriver stepper_top2(MOTOR_STEPS, DIR_Y, STEP_Y, SLEEP);
+
+unsigned char MOVE_PROCESSED = "A";
+unsigned char STILL_MOVING = "B";
+unsigned char HAHA = "D";
+uint8_t NOOO = 99;
 
 int final_pos = MOTOR_STEPS * MICROSTEPS * 7;  // motor steps to make the platform rotate one time
 
@@ -40,7 +46,17 @@ void setup() {
 
 void loop() {
   // testSerial();
-  Serial.println("lol");
+
+  Serial.print("A");
+  Serial.print("B");
+  delay(1500);
+  // Serial.print(STILL_MOVING);
+  // Serial.print(STILL_MOVING);
+  // Serial.print(STILL_MOVING);
+  // Serial.print(STILL_MOVING);
+  // Serial.print(STILL_MOVING);
+  // Serial.print(MOVE_PROCESSED);
+  // Serial.print(HAHA);
   // moveSteppers();
 }
 
