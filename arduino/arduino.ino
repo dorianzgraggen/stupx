@@ -39,7 +39,8 @@ void setup() {
 }
 
 void loop() {
-  testSerial();
+  // testSerial();
+  Serial.println("lol");
   // moveSteppers();
 }
 
@@ -54,7 +55,7 @@ void testSerial() {
 }
 
 void moveSteppers() {
-    stepper_bottom.setRPM(20);
+  stepper_bottom.setRPM(20);
   Serial.println(Serial.available());
   stepper_bottom.startMove(final_pos);
   stepper_top.startMove(final_pos);

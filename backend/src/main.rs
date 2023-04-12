@@ -33,6 +33,7 @@ async fn main() {
 
 async fn draw(Json(payload): Json<PointList>) -> StatusCode {
     println!("{:#?}", payload);
+    std::thread::spawn(move || send_painting_commands(payload));
     StatusCode::ACCEPTED
 }
 
@@ -44,9 +45,57 @@ struct Point {
     y: f32,
 }
 
+impl Point {
+    fn length(&self) -> f32 {
+        (self.x * self.x + self.y * self.y).sqrt()
+    }
+}
+
 #[derive(Deserialize, Debug)]
 struct PointList {
     points: Vec<Point>,
+}
+
+fn send_painting_commands(list: PointList) {
+    let ports = serialport::available_ports().expect("No ports found!");
+    for p in ports {
+        println!("{}", p.port_name);
+    }
+
+    let mut port = serialport::new("COM5", 9600)
+        .timeout(Duration::from_millis(10))
+        .open()
+        .expect("Failed to open port");
+
+    std::thread::sleep(Duration::from_millis(4000));
+
+    let output = "This is a test. This is only a test.".as_bytes();
+    let _amount = port.write(output).expect("Write failed!");
+
+    loop {
+        let mut serial_buf: Vec<u8> = vec![0; 32];
+        let bytes = port
+            .read(serial_buf.as_mut_slice())
+            .expect("Found no data!");
+
+        match std::str::from_utf8(&serial_buf[..bytes]) {
+            Ok(s) => println!("[arduino] {}", s),
+            Err(e) => {
+                println!("Error: {}", e);
+                println!("Data: {:#?}", serial_buf);
+            }
+        }
+    }
+
+    // let mut reader = BufReader::new(port);
+    // let mut my_str = String::new();
+
+    // loop {
+
+    //     reader.read_line(&mut my_str);
+
+    //     println!("{}", my_str);
+    // }
 }
 
 fn process_test() {
