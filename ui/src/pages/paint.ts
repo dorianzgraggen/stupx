@@ -75,6 +75,7 @@ function animate(time: number) {
   cube.rotation.y += 0.01;
 
   mouse_pos_smooth.lerp(mouse_pos, delta * 0.012);
+  mouse_pos_smooth.clampScalar(-1, 1);
 
   if (follow_mouse) {
     // cursor.position.x =
