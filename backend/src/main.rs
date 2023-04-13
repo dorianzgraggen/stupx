@@ -6,6 +6,7 @@ use axum::{
 use serde::Deserialize;
 use std::{
     default,
+    f32::consts::{PI, TAU},
     io::{BufRead, BufReader},
     process::{Command, Stdio},
     time::Duration,
@@ -59,6 +60,14 @@ impl Point {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
+    fn angle_rad(&self) -> f32 {
+        self.x.atan2(self.y) + PI
+    }
+
+    fn angle_remapped_256(&self) -> u8 {
+        ((256.0 / TAU) * self.angle_rad()) as u8
+    }
+
     fn new(x: f32, y: f32) -> Point {
         Point { x, y }
     }
@@ -95,10 +104,12 @@ fn send_painting_commands(list: PointList) {
 
         let length = point.length();
         let remapped_length = (length * (256.0 / 18.0)) as u8;
+        let remapped_angle = point.angle_remapped_256();
+
         println!(
-            "Sending {}, originally {} ({}/{})",
+            "Sending length={}, angle={} ({}/{})",
             remapped_length,
-            length,
+            remapped_angle,
             i,
             list.points.len()
         );
