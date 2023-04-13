@@ -114,6 +114,7 @@ fn send_painting_commands(list: PointList) {
             list.points.len()
         );
         let _amount = port.write(&[remapped_length]).expect("Write failed!");
+        let _amount = port.write(&[remapped_angle]).expect("Write failed!");
 
         let mut waiting = true;
         while waiting {
