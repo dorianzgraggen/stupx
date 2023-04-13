@@ -9,7 +9,7 @@ use std::{
     f32::consts::{PI, TAU},
     io::{BufRead, BufReader},
     process::{Command, Stdio},
-    time::Duration,
+    time::{Duration, SystemTime},
 };
 use tower_http::cors::{Any, CorsLayer};
 
@@ -106,6 +106,8 @@ fn send_painting_commands(list: PointList) {
         let remapped_length = (length * (256.0 / 18.0)) as u8;
         let remapped_angle = point.angle_remapped_256();
 
+        // std::thread::sleep(Duration::from_millis(40));
+
         println!(
             "Sending length={}, angle={} ({}/{})",
             remapped_length,
@@ -113,10 +115,14 @@ fn send_painting_commands(list: PointList) {
             i,
             list.points.len()
         );
-        let _amount = port.write(&[remapped_length]).expect("Write failed!");
-        let _amount = port.write(&[remapped_angle]).expect("Write failed!");
+        let _amount = port
+            .write(&[remapped_length, remapped_angle])
+            .expect("Write failed!");
+        // let _amount = port.write(&[remapped_angle]).expect("Write failed!");
 
         let mut waiting = true;
+        let time_start = SystemTime::now();
+
         while waiting {
             let num = port.bytes_to_read().unwrap();
             if num > 0 {
@@ -126,23 +132,34 @@ fn send_painting_commands(list: PointList) {
                 let byte = &serial_buf[0];
                 match &serial_buf[0] {
                     65u8 => {
-                        // A
-                        println!("Still moving");
+                        println!("A: Serial available");
                     }
                     66u8 => {
-                        // B
-                        println!("Ready for move");
+                        println!("B: Ready for move");
                     }
                     67u8 => {
-                        // C
                         println!("C: finished moving");
                         waiting = false;
+                    }
+                    68u8 => {
+                        println!("D: looping");
+                    }
+                    69u8 => {
+                        println!("E: waiting_for_top_pos");
+                    }
+                    70u8 => {
+                        println!("F: waiting_for_rot");
                     }
                     _ => {
                         println!("-- no matching command for {}", byte);
                     }
                 }
                 // println!("{:#?}", &serial_buf[0]);
+            }
+
+            if time_start.elapsed().unwrap().as_millis() > 200 {
+                println!("skipping");
+                waiting = false;
             }
         }
     }
