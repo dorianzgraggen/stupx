@@ -37,7 +37,7 @@ document.addEventListener('mousemove', (e) => {
 
 document.addEventListener('keydown', async (e) => {
   switch (e.key) {
-    case 'q':
+    case 'q': {
       const body = JSON.stringify({
         points: points.map((p) => {
           return { x: p.x, y: p.y };
@@ -53,7 +53,14 @@ document.addEventListener('keydown', async (e) => {
 
       console.log(res);
       break;
+    }
 
+    case 'r': {
+      const res = await fetch('http://localhost:3000/reset', {
+        method: 'POST',
+      });
+      console.log(res);
+    }
     default:
       break;
   }

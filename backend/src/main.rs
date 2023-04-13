@@ -22,6 +22,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/draw", post(draw))
+        .route("/reset", post(reset))
         .layer(cors);
 
     println!("letsago");
@@ -38,7 +39,14 @@ async fn draw(Json(payload): Json<PointList>) -> StatusCode {
     StatusCode::ACCEPTED
 }
 
-// the input to our `create_user` handler
+async fn reset() -> StatusCode {
+    std::thread::spawn(move || {
+        send_painting_commands(PointList {
+            points: vec![Point::new(0.0, 0.0)],
+        })
+    });
+    StatusCode::ACCEPTED
+}
 
 #[derive(Deserialize, Debug)]
 struct Point {
@@ -49,6 +57,10 @@ struct Point {
 impl Point {
     fn length(&self) -> f32 {
         (self.x * self.x + self.y * self.y).sqrt()
+    }
+
+    fn new(x: f32, y: f32) -> Point {
+        Point { x, y }
     }
 }
 

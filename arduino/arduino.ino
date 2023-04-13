@@ -77,7 +77,7 @@ void loop() {
 
 void processCommands() {
   while (Serial.available() > 0) {
-    Serial.println("A");
+    Serial.print("A");
     int inInt = Serial.read();
     // char inChar = (char) inInt;
 
@@ -127,7 +127,7 @@ void moveSteppers(int top_desired) {
 
 
   stepper_bottom.startMove(0);
-  stepper_top.startMove(-to_move_top);
+  stepper_top.startMove(to_move_top);
 
 
   unsigned wait_time_bottom = 1;
@@ -150,10 +150,21 @@ void moveSteppers(int top_desired) {
 }
 
 void testMoveSteppers() {
+  delay(2000);
+  Serial.println("gonna move");
   for (int i = 0; i < 256; i++) {
     moveSteppers(i);
     delay(10);
   }
+  delay(1000);
+
+  for (int i = 0; i < 256; i++) {
+    moveSteppers(255 - i);
+    delay(10);
+  }
+  Serial.println("before wait");
+  delay(4000);
+  Serial.println("after wait");
 }
 
 void aaa() {
