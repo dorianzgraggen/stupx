@@ -5,10 +5,7 @@ use axum::{
 };
 use serde::Deserialize;
 use std::{
-    default,
     f32::consts::{PI, TAU},
-    io::{BufRead, BufReader},
-    process::{Command, Stdio},
     time::{Duration, SystemTime},
 };
 use tower_http::cors::{Any, CorsLayer};
@@ -79,10 +76,6 @@ struct PointList {
 }
 
 fn send_painting_commands(list: PointList) {
-    let mut max = 0.0;
-
-    let measured_max_length = 18.0;
-
     let ports = serialport::available_ports().expect("No ports found!");
     for p in ports {
         println!("{}", p.port_name);
@@ -118,7 +111,6 @@ fn send_painting_commands(list: PointList) {
         let _amount = port
             .write(&[remapped_length, remapped_angle])
             .expect("Write failed!");
-        // let _amount = port.write(&[remapped_angle]).expect("Write failed!");
 
         let mut waiting = true;
         let time_start = SystemTime::now();
@@ -157,47 +149,10 @@ fn send_painting_commands(list: PointList) {
                 // println!("{:#?}", &serial_buf[0]);
             }
 
-            if time_start.elapsed().unwrap().as_millis() > 200 {
+            if time_start.elapsed().unwrap().as_millis() > 500 {
                 println!("skipping");
                 waiting = false;
             }
         }
-    }
-}
-
-fn process_test() {
-    let mut child = Command::new("ping")
-        .args(["example.com"])
-        .stdout(Stdio::piped())
-        .spawn()
-        .expect("failed to execute process");
-
-    let stdout = child.stdout.take().unwrap();
-
-    // Stream output.
-    let lines = BufReader::new(stdout).lines();
-    for line in lines {
-        println!("lol: {}", line.unwrap());
-    }
-}
-
-fn serial_test() -> ! {
-    let ports = serialport::available_ports().expect("No ports found!");
-    for p in ports {
-        println!("{}", p.port_name);
-    }
-
-    let mut port = serialport::new("COM5", 9600)
-        .timeout(Duration::from_millis(10))
-        .open()
-        .expect("Failed to open port");
-
-    // let output = "This is a test. This is only a test.".as_bytes();
-    // port.write(output).expect("Write failed!");
-
-    loop {
-        let mut serial_buf: Vec<u8> = vec![0; 32];
-        port.read_exact(serial_buf.as_mut_slice())
-            .expect("Found no data!");
     }
 }

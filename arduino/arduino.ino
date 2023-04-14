@@ -46,35 +46,17 @@ byte previous_rot = 0;
 #define LARGE_GEAR_TEETH 126
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
 
   stepper_bottom.begin(RPM, MICROSTEPS);
   stepper_bottom.setEnableActiveState(LOW);
-  // stepper_bottom.enable();
 
   stepper_top.begin(RPM, MICROSTEPS);
   stepper_top.setEnableActiveState(LOW);
-  // stepper_top.enable();
-
-  // Serial.println("=========begin");
 }
 
 
 void loop() {
-  // Serial.print("A");
-  // Serial.print("B");
-  // testSerial();
-
-  // if (command == "22") {
-  //   Serial.println("geilo");
-  // }
-  // Serial.println(command);
-  // Serial.println(command.toInt());
-
-
-  // Serial.println((char)104);
-
   processCommands();
 
   // testMoveSteppers();
@@ -82,11 +64,6 @@ void loop() {
   // testStepperBug2();
   // testStepperBug3();
   // testRotation();
-  // delay(1500);
-
-  // aaa();
-  // moveSteppers();
-  // delay(1500);
 }
 
 void testRotation() {
@@ -150,10 +127,8 @@ void moveSteppers(int slide_pos_desired, byte rotation_desired) {
 }
 
 void moveSteppers(int slide_pos_desired, byte rotation_desired, bool debug) {
-  // Serial.println("starting");
-  // Serial.println("C");
-  // stepper_bottom.setRPM(20);
-  // stepper_top.setRPM(200);
+
+  // SLIDER =========================================================
 
   // remaps from 0..255 to 0..{steps_for_max_slide_position}
   float slide_multiplier = ((float)slide_pos_desired) / 256.0;
@@ -233,7 +208,6 @@ void moveSteppers(int slide_pos_desired, byte rotation_desired, bool debug) {
   previous_rot = rotation_desired;
 
   if (debug) {
-
     Serial.print("startMove: ");
     Serial.println((int)remapped_to_rotate);
   }
@@ -241,10 +215,12 @@ void moveSteppers(int slide_pos_desired, byte rotation_desired, bool debug) {
   stepper_bottom.startMove((int)remapped_to_rotate);
 
 
+  // STEPPER MOVEMENT ===============================================
+
   unsigned wait_time_bottom = 1;
   unsigned wait_time_top = 1;
-  while (wait_time_bottom > 0 || wait_time_top > 0) {
 
+  while (wait_time_bottom > 0 || wait_time_top > 0) {
     if (wait_time_bottom > 0) {
       wait_time_bottom = stepper_bottom.nextAction();
     }
@@ -257,12 +233,12 @@ void moveSteppers(int slide_pos_desired, byte rotation_desired, bool debug) {
     // int remaining = stepper_bottom.getStepsRemaining();
   }
   if (debug) {
-
     Serial.println("");
   }
 
   // delay(100);
 }
+
 
 void testMoveSteppers() {
   delay(2000);
@@ -297,8 +273,6 @@ void testStepperBug() {
   delay(2000);
 }
 
-
-
 void testStepperBug2() {
   delay(2000);
   Serial.println("step1");
@@ -319,19 +293,4 @@ void testStepperBug3() {
   moveSteppers(117, 104, true);
 
   delay(2000);
-}
-
-void aaa() {
-
-  stepper_bottom.enable();
-  stepper_bottom.startMove(max_pos);
-
-  unsigned wait_time_micros = 1;
-  while (wait_time_micros > 0) {
-    wait_time_micros = stepper_bottom.nextAction();
-    int remaining = stepper_bottom.getStepsRemaining();
-    int new_pos = 0;
-  }
-  // delay(0);
-  stepper_bottom.disable();
 }
